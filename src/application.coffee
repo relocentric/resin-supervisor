@@ -377,10 +377,10 @@ apiPollInterval = (val) ->
 	application.poll()
 
 specialActionConfigVars =
-	'RESIN_SUPERVISOR_VPN_CONTROL': utils.vpnControl
 	'RESIN_SUPERVISOR_CONNECTIVITY_CHECK': utils.enableConnectivityCheck
-	'RESIN_SUPERVISOR_POLL_INTERVAL': apiPollInterval
 	'RESIN_SUPERVISOR_LOG_CONTROL': utils.resinLogControl
+	'RESIN_SUPERVISOR_POLL_INTERVAL': apiPollInterval
+	'RESIN_SUPERVISOR_VPN_CONTROL': utils.vpnControl
 
 executedSpecialActionConfigVars = {}
 

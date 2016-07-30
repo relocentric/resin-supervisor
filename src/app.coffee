@@ -21,7 +21,6 @@ knex.init.then ->
 
 		api = require './api'
 		application = require('./application')(logsChannel, bootstrap.offlineMode)
-		device = require './device'
 
 		console.log('Starting API server..')
 		utils.createIpTablesRules()
@@ -31,32 +30,34 @@ knex.init.then ->
 
 		bootstrap.done
 		.then ->
+			# The device module communicates with the api and as such needs bootstrapping to complete
+			device = require './device'
 			device.getOSVersion()
-		.then (osVersion) ->
-			# Let API know what version we are, and our api connection info.
-			console.log('Updating supervisor version and api info')
-			device.updateState(
-				api_port: config.listenPort
-				api_secret: secret
-				os_version: osVersion
-				supervisor_version: utils.supervisorVersion
-				provisioning_progress: null
-				provisioning_state: ''
-				download_progress: null
-				logs_channel: logsChannel
-			)
+			.then (osVersion) ->
+				# Let API know what version we are, and our api connection info.
+				console.log('Updating supervisor version and api info')
+				device.updateState(
+					api_port: config.listenPort
+					api_secret: secret
+					os_version: osVersion
+					supervisor_version: utils.supervisorVersion
+					provisioning_progress: null
+					provisioning_state: ''
+					download_progress: null
+					logs_channel: logsChannel
+				)
+
+			updateIpAddr = ->
+				utils.gosuper.getAsync('/v1/ipaddr', { json: true })
+				.spread (response, body) ->
+					if response.statusCode == 200 && body.Data.IPAddresses?
+						device.updateState(
+							ip_address: body.Data.IPAddresses.join(' ')
+						)
+				.catch(_.noop)
+			console.log('Starting periodic check for IP addresses..')
+			setInterval(updateIpAddr, 30 * 1000) # Every 30s
+			updateIpAddr()
 
 		console.log('Starting Apps..')
 		application.initialize()
-
-		updateIpAddr = ->
-			utils.gosuper.getAsync('/v1/ipaddr', { json: true })
-			.spread (response, body) ->
-				if response.statusCode == 200 && body.Data.IPAddresses?
-					device.updateState(
-						ip_address: body.Data.IPAddresses.join(' ')
-					)
-			.catch(_.noop)
-		console.log('Starting periodic check for IP addresses..')
-		setInterval(updateIpAddr, 30 * 1000) # Every 30s
-		updateIpAddr()

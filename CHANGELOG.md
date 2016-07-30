@@ -1,3 +1,4 @@
+* Change to the new device registration method to exchange our provisioning key with a dedicated api key for the device. [Page]
 * In cleanup, normalize all image tags for comparison [Pablo]
 * Use getRegistryAndName from docker-toolbelt 1.2.0 [Pablo]
 
